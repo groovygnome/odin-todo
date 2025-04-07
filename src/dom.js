@@ -1,9 +1,14 @@
-export function createDOM() {
+import { pubsub } from './pubsub.js';
+
+export const createDOM = (() => {
     const newprojBtn = document.querySelector('.new-proj');
     const modal = document.querySelector('.modal');
-    const modalCloseBtn = document.querySelector('.modal-close');
+    const modalCloseBtn = document.querySelector('.close');
 
-    newprojBtn.addEventListener('click', () => { alert('hi') });
+    newprojBtn.addEventListener('click', () => { modal.show() });
+    modalCloseBtn.addEventListener('click', () => { modal.close(); event.preventDefault(); })
+
+    pubsub.subscribe('newTask', (project) => { displayProject(project) });
 
     function displayProject(project) {
         const projContainer = document.createElement('div');
@@ -26,4 +31,4 @@ export function createDOM() {
     return { displayProject };
 
 
-}
+})();

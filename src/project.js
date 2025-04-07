@@ -1,5 +1,8 @@
+import { pubsub } from './pubsub.js';
+
 export function createProject(name) {
-    let tasks = []
+    let tasks = [];
+    const project = { getName, getTasks, addTask, removeTask, displayProject }
 
     function getName() {
         return name;
@@ -11,7 +14,7 @@ export function createProject(name) {
 
     function addTask(newTask) {
         tasks.push(newTask);
-        pubsub.publish('newTask', this);
+        pubsub.publish('newTask', project);
     }
 
     function removeTask(index) {
@@ -23,6 +26,8 @@ export function createProject(name) {
             task.display();
         }
     }
+
+    pubsub.publish('newProject', project);
 
     return { getName, getTasks, addTask, removeTask, displayProject }
 }
