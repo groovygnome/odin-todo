@@ -1,39 +1,42 @@
-export class Project {
-    constructor(name) {
-        this.name = name;
-        this.tasks = [];
+export function createProject(name) {
+    let tasks = []
+
+    function getName() {
+        return name;
     }
 
-    addTask(newTask) {
-        this.tasks.push(newTask);
+    function getTasks() {
+        return tasks;
     }
 
-    removeTask(index) {
-        this.tasks.splice(index, 1);
+    function addTask(newTask) {
+        tasks.push(newTask);
+        pubsub.publish('newTask', this);
     }
 
-    displayProject() {
-        console.log(this.name);
-        for (let task of this.tasks) {
+    function removeTask(index) {
+        tasks.splice(index, 1);
+    }
+
+    function displayProject() {
+        for (let task of tasks) {
             task.display();
         }
     }
+
+    return { getName, getTasks, addTask, removeTask, displayProject }
 }
 
-export class Todo {
-    constructor(title, description, dueDate, priority) {
-        this.title = title;
-        this.description = description;
-        this.dueDate = dueDate;
-        this.priority = priority;
-        this.completed = false;
+export function createTodo(title, description, dueDate, priority) {
+    let completed = false;
+
+    function changeCompleted() {
+        completed = !completed;
     }
 
-    changeCompleted() {
-        this.completed = !this.completed;
+    function display() {
+        return 'Title: ' + title + ' Description: ' + description + ' Due: ' + dueDate + ' Priority: ' + priority + ' Completed: ' + completed;
     }
 
-    display() {
-        console.log('Title: ' + this.title + ' Description: ' + this.description + ' Due: ' + this.dueDate + ' Priority: ' + this.priority + ' Completed: ' + this.completed);
-    }
+    return { changeCompleted, display }
 }
