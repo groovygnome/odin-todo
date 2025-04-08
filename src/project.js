@@ -1,8 +1,11 @@
 import { pubsub } from './pubsub.js';
 
+pubsub.subscribe('createProject', (title) => createProject(title));
+
 export function createProject(name) {
     let tasks = [];
     const project = { getName, getTasks, addTask, removeTask, displayProject }
+    pubsub.subscribe(name + 'createTask', ([title, desc, dueDate, prio]) => addTask(createTodo(title, desc, dueDate, prio)));
 
     function getName() {
         return name;

@@ -9,20 +9,35 @@ export const dom = (() => {
     const projModalClose = document.querySelector('.proj-close');
     const projModalSubmit = document.querySelector('.proj-submit');
 
+    const taskModal = document.querySelector('.task-modal');
+    const taskModalClose = document.querySelector('.task-close');
+    const taskForm = document.querySelector('#newtask');
+
+    taskModalClose.addEventListener('click', () => { taskModal.close(); event.preventDefault(); });
+
     newprojBtn.addEventListener('click', () => { projModal.show(); });
     projModalClose.addEventListener('click', () => { projModal.close(); event.preventDefault(); });
-    projModalSubmit.addEventListener('click', () => { projModal.close(); event.preventDefault(); createDOMProject(document.querySelector('#title').value); });
+    projModalSubmit.addEventListener('click', () => {
+        projModal.close();
+        event.preventDefault();
+        const title = document.querySelector('#title');
+        createDOMProject(title.value);
+        title.value = '';
+    });
 
     pubsub.subscribe('newTask', (project) => { updateProject(project) });
     pubsub.subscribe('newProject', (project) => { displayProject(project) });
 
     function displayProject(project) {
+        title = project.getName();
         const projContainer = document.createElement('div');
         projContainer.className = 'project';
-        projContainer.setAttribute('id', project.getName());
+        projContainer.setAttribute('id', title);
         const projName = document.createElement('h1');
-        projName.textContent = project.getName();
+        projName.textContent = title;
         projContainer.appendChild(projName);
+
+        projContainer.appendChild(createNewTaskButton(title))
 
         projContainer.appendChild(renderTasks(project.getTasks()));
         document.body.appendChild(projContainer);
@@ -36,7 +51,11 @@ export const dom = (() => {
     }
 
     function createDOMProject(title) {
-        const newProj = createProject(title);
+        pubsub.publish('createProject', (title));
+    }
+
+    function createDOMTask(title, desc, dueDate, prio) {
+        pubsub.publish('createTask', (title, desc, dueDate, prio));
     }
 
     function renderTasks(tasks) {
@@ -49,6 +68,35 @@ export const dom = (() => {
             taskContainer.appendChild(taskDOM);
         }
         return taskContainer;
+    }
+
+    function createNewTaskButton(title) {
+        const newTaskBtn = document.createElement('button');
+        newTaskBtn.textContent = 'New Task';
+
+        const taskModalSubmit = document.createElement('input');
+        taskModalSubmit.setAttribute('type', 'submit');
+        taskModalSubmit.setAttribute('form', 'newtask');
+        taskModalSubmit.textContent = 'Submit Query';
+
+        newTaskBtn.addEventListener('click', () => { taskModal.show(); taskForm.appendChild(taskModalSubmit); });
+
+        taskModalSubmit.addEventListener('click', () => {
+            taskModal.close();
+            event.preventDefault();
+            const taskTitle = document.querySelector('#task-title');
+            const desc = document.querySelector('#desc');
+            const dueDate = document.querySelector('#duedate');
+            const prio = document.querySelector('#prio');
+            pubsub.publish(title + 'createTask', [taskTitle.value, desc.value, dueDate.value, prio.value]);
+            taskForm.removeChild(taskModalSubmit);
+            taskTitle.value = '';
+            desc.value = '';
+            dueDate.value = '';
+            prio.value = '';
+        });
+
+        return newTaskBtn;
     }
 
 })();
