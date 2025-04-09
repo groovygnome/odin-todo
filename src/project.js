@@ -6,6 +6,8 @@ export function createProject(name) {
     let tasks = [];
     const project = { getName, getTasks, addTask, removeTask, displayProject }
     pubsub.subscribe(name + 'createTask', ([title, desc, dueDate, prio]) => addTask(createTodo(title, desc, dueDate, prio)));
+    pubsub.subscribe(name + 'deleteTask', (title) => removeTask(title));
+    pubsub.subscribe(name + 'completeTask', (title) => { getTask(title).changeCompleted(); pubsub.publish('updateProject', project); });
 
     function getName() {
         return name;
@@ -15,13 +17,23 @@ export function createProject(name) {
         return tasks;
     }
 
-    function addTask(newTask) {
-        tasks.push(newTask);
-        pubsub.publish('newTask', project);
+    function getTask(title) {
+        const index = tasks.findIndex(task => task.getTitle() === title);
+        if (index !== -1) {
+            return tasks[index];
+        }
     }
 
-    function removeTask(index) {
-        tasks.splice(index, 1);
+    function addTask(newTask) {
+        tasks.push(newTask);
+        pubsub.publish('updateProject', project);
+    }
+
+    function removeTask(title) {
+        const index = tasks.findIndex(task => task.getTitle() === title);
+        if (index !== -1) {
+            tasks.splice(index, 1);
+        }
     }
 
     function displayProject() {
@@ -42,9 +54,29 @@ export function createTodo(title, description, dueDate, priority) {
         completed = !completed;
     }
 
+    function getTitle() {
+        return title;
+    }
+
+    function getDesc() {
+        return description;
+    }
+
+    function getDueDate() {
+        return dueDate;
+    }
+
+    function getPrio() {
+        return priority;
+    }
+
+    function getCompleted() {
+        return completed;
+    }
+
     function display() {
         return 'Title: ' + title + ' Description: ' + description + ' Due: ' + dueDate + ' Priority: ' + priority + ' Completed: ' + completed;
     }
 
-    return { changeCompleted, display }
+    return { changeCompleted, display, getTitle, getDesc, getDueDate, getPrio, getCompleted }
 }
