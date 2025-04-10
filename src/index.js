@@ -3,7 +3,7 @@ import { createProject, createTodo } from './project.js';
 //import { createDOM } from './dom.js';
 import { pubsub } from './pubsub.js';
 
-export const dom = (() => {
+const dom = (() => {
     const projectsContainer = document.querySelector('.projects-container');
     const newprojBtn = document.querySelector('.new-proj');
     const projModal = document.querySelector('.proj-modal');
@@ -14,7 +14,7 @@ export const dom = (() => {
     const taskModalClose = document.querySelector('.task-close');
     const taskForm = document.querySelector('#newtask');
 
-    taskModalClose.addEventListener('click', () => { taskModal.close(); event.preventDefault(); });
+    taskModalClose.addEventListener('click', () => { taskModal.close(); event.preventDefault(); taskForm.removeChild(taskModal.querySelector(`input[type='submit']`)); });
 
     newprojBtn.addEventListener('click', () => { projModal.show(); });
     projModalClose.addEventListener('click', () => { projModal.close(); event.preventDefault(); });
@@ -33,7 +33,7 @@ export const dom = (() => {
         title = project.getName();
         const projContainer = document.createElement('div');
         projContainer.className = 'project';
-        projContainer.setAttribute('id', title);
+        projContainer.setAttribute('id', title.replace(/ /g, "-"));
         const projName = document.createElement('h1');
         projName.textContent = title;
         projContainer.appendChild(projName);
@@ -69,10 +69,15 @@ export const dom = (() => {
         const deleteBtn = document.createElement('button');
         const taskTitle = task.getTitle();
         deleteBtn.textContent = 'Delete';
+        const completedBtn = document.createElement('input');
+        completedBtn.setAttribute('type', 'checkbox');
+        const moreBtn = document.createElement('button');
+        moreBtn.textContent = 'Show More';
 
         const title = document.createElement('h2');
         const more = document.createElement('div');
-        more.id = taskTitle + 'more';
+        more.id = taskTitle.replace(/ /g, "-") + 'more';
+        more.classList = 'more';
         const desc = document.createElement('p');
         const dueDate = document.createElement('p');
         const prio = document.createElement('p');
@@ -82,32 +87,63 @@ export const dom = (() => {
         desc.textContent = task.getDesc();
         dueDate.textContent = task.getDueDate();
         prio.textContent = task.getPrio();
-        completed.textContent = task.getCompleted();
-
-        const completedBtn = document.createElement('button');
-        completedBtn.textContent = 'Complete';
+        switch (prio.textContent) {
+            case 'No Priority':
+                prio.style.color = 'grey';
+                break;
+            case 'Low Priority':
+                prio.style.color = 'green';
+                break;
+            case 'Medium Priority':
+                prio.style.color = 'orange';
+                break;
+            case 'High Priority':
+                prio.style.color = 'red';
+                break;
+        }
+        completed.textContent = 'Not Completed';
+        completed.style.color = 'red';
 
         taskDOM.className = 'task';
-        taskDOM.id = taskTitle;
+        taskDOM.id = taskTitle.replace(/ /g, "-");
         deleteBtn.addEventListener('click', () => {
             const project = document.querySelector('#' + projTitle);
             const taskCont = project.querySelector('.task-container');
-            const deleteTask = taskCont.querySelector('#' + taskTitle);
+            const deleteTask = taskCont.querySelector('#' + taskTitle.replace(/ /g, "-"));
             taskCont.removeChild(deleteTask);
             pubsub.publish(projTitle + 'deleteTask', (taskTitle));
         });
 
-        completedBtn.addEventListener('click', () => {
-            pubsub.publish(projTitle + 'completeTask', (taskTitle));
+        completedBtn.addEventListener('change', () => {
+            if (completedBtn.checked) {
+                completed.textContent = 'Completed'
+                completed.style.color = 'green';
+            } else {
+                completed.textContent = 'Not Completed'
+                completed.style.color = 'red';
+            }
+
+        });
+
+        moreBtn.addEventListener('click', () => {
+            if (moreBtn.textContent == 'Show More') {
+                moreBtn.textContent = 'Show Less';
+                more.style.display = 'inline';
+            } else {
+                moreBtn.textContent = 'Show More';
+                more.style.display = 'none';
+            }
         });
         taskDOM.appendChild(title);
         taskDOM.appendChild(dueDate);
-        taskDOM.appendChild(deleteBtn);
+        taskDOM.appendChild(completedBtn);
         more.appendChild(desc);
         more.appendChild(prio);
         more.appendChild(completed);
-        more.appendChild(completedBtn);
+        more.appendChild(deleteBtn);
+        more.style.display = 'none';
         taskDOM.appendChild(more);
+        taskDOM.appendChild(moreBtn);
 
         return taskDOM;
     }
@@ -146,7 +182,5 @@ export const dom = (() => {
 window.createProject = createProject;
 window.createTodo = createTodo;
 //window.createDOM = createDOM;
-
-
 
 
