@@ -36,7 +36,18 @@ const dom = (() => {
         projContainer.setAttribute('id', title.replace(/ /g, "-"));
         const projName = document.createElement('h1');
         projName.textContent = title;
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'Delete Project';
+
+        deleteBtn.addEventListener('click', () => {
+            const project = document.querySelector('#' + title.replace(/ /g, "-"));
+            projectsContainer.removeChild(project);
+            pubsub.publish(title + 'deleteProject', (title));
+        });
+
+
         projContainer.appendChild(projName);
+        projContainer.appendChild(deleteBtn);
 
         projContainer.appendChild(createNewTaskButton(title))
 
@@ -68,11 +79,10 @@ const dom = (() => {
         const taskDOM = document.createElement('div');
         const deleteBtn = document.createElement('button');
         const taskTitle = task.getTitle();
-        deleteBtn.textContent = 'Delete';
+        deleteBtn.textContent = 'Delete Task';
         const completedBtn = document.createElement('input');
         completedBtn.setAttribute('type', 'checkbox');
         const moreBtn = document.createElement('button');
-        moreBtn.textContent = 'Show More';
 
         const title = document.createElement('h2');
         const more = document.createElement('div');
@@ -101,8 +111,23 @@ const dom = (() => {
                 prio.style.color = 'red';
                 break;
         }
-        completed.textContent = 'Not Completed';
-        completed.style.color = 'red';
+        if (task.getCompleted()) {
+            completedBtn.checked = true;
+            completed.textContent = 'Completed';
+            completed.style.color = 'green';
+        } else {
+            completedBtn.checked = false;
+            completed.textContent = 'Not Completed';
+            completed.style.color = 'red';
+        }
+
+        if (task.getMore()) {
+            more.style.display = 'inline';
+            moreBtn.textContent = 'Show Less';
+        } else {
+            more.style.display = 'none';
+            moreBtn.textContent = 'Show More';
+        }
 
         taskDOM.className = 'task';
         taskDOM.id = taskTitle.replace(/ /g, "-");
@@ -115,17 +140,19 @@ const dom = (() => {
         });
 
         completedBtn.addEventListener('change', () => {
+            task.changeCompleted();
             if (completedBtn.checked) {
-                completed.textContent = 'Completed'
+                completed.textContent = 'Completed';
                 completed.style.color = 'green';
             } else {
-                completed.textContent = 'Not Completed'
+                completed.textContent = 'Not Completed';
                 completed.style.color = 'red';
             }
 
         });
 
         moreBtn.addEventListener('click', () => {
+            task.changeMore();
             if (moreBtn.textContent == 'Show More') {
                 moreBtn.textContent = 'Show Less';
                 more.style.display = 'inline';
@@ -141,7 +168,6 @@ const dom = (() => {
         more.appendChild(prio);
         more.appendChild(completed);
         more.appendChild(deleteBtn);
-        more.style.display = 'none';
         taskDOM.appendChild(more);
         taskDOM.appendChild(moreBtn);
 
@@ -179,8 +205,41 @@ const dom = (() => {
 
 })();
 
-window.createProject = createProject;
-window.createTodo = createTodo;
-//window.createDOM = createDOM;
 
+const lStorage = (() => {
+
+    pubsub.subscribe('updateProject', (project) => { updateStoredProject(project) });
+    pubsub.subscribe('newProject', (project) => { storeProject(project) });
+
+    function storeProject(project) {
+        let title = project.getName();
+        localStorage.setItem(title.replace(/ /g, "-") + '-project',
+            JSON.stringify({ name: title, tasks: [] })
+        );
+    }
+
+    function updateStoredProject(project) {
+        let title = project.getName();
+        let tasks = project.getTasks();
+        let tasksJSON = [];
+        for (let task of tasks) {
+            tasksJSON.push(JSON.stringify({ title: task.getTitle(), desc: task.getDesc(), dueDate: task.getDueDate(), prio: task.getPrio(), completed: task.getCompleted(), more: task.getMore() }));
+        }
+        localStorage.setItem(title.replace(/ /g, "-") + '-project',
+            JSON.stringify({ name: title, tasks: tasksJSON })
+        );
+
+    }
+
+    function getStoredProjects() {
+        const entries = Object.entries(localStorage);
+        entries.forEach(([key, value]) => {
+            console.log(`Key: ${key}, Value: ${value}`);
+        });
+    }
+
+    getStoredProjects();
+
+
+})();
 

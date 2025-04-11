@@ -8,6 +8,8 @@ export function createProject(name) {
     pubsub.subscribe(name + 'createTask', ([title, desc, dueDate, prio]) => addTask(createTodo(title, desc, dueDate, prio)));
     pubsub.subscribe(name + 'deleteTask', (title) => removeTask(title));
     pubsub.subscribe(name + 'completeTask', (title) => { getTask(title).changeCompleted(); pubsub.publish('updateProject', project); });
+    pubsub.subscribe(name + 'deleteProject', (title) => { delete this; });
+
 
     function getName() {
         return name;
@@ -49,9 +51,14 @@ export function createProject(name) {
 
 export function createTodo(title, description, dueDate, priority) {
     let completed = false;
+    let more = false;
 
     function changeCompleted() {
         completed = !completed;
+    }
+
+    function changeMore() {
+        more = !more;
     }
 
     function getTitle() {
@@ -74,9 +81,13 @@ export function createTodo(title, description, dueDate, priority) {
         return completed;
     }
 
+    function getMore() {
+        return more;
+    }
+
     function display() {
         return 'Title: ' + title + ' Description: ' + description + ' Due: ' + dueDate + ' Priority: ' + priority + ' Completed: ' + completed;
     }
 
-    return { changeCompleted, display, getTitle, getDesc, getDueDate, getPrio, getCompleted }
+    return { changeCompleted, display, getTitle, getDesc, getDueDate, getPrio, getCompleted, changeMore, getMore }
 }
