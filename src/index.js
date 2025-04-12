@@ -26,21 +26,21 @@ const dom = (() => {
         title.value = '';
     });
 
-    pubsub.subscribe('updateProject', (project) => { updateProject(project) });
-    pubsub.subscribe('newProject', (project) => { displayProject(project) });
+    pubsub.subscribe('updateProject', ([name, tasks]) => { updateProject(name, tasks) });
+    pubsub.subscribe('newProject', ([name, tasks]) => { displayProject(name, tasks) });
 
-    function displayProject(project) {
-        title = project.getName();
+    function displayProject(title, tasks) {
+        const dashTitle = title.replace(/ /g, "-");
         const projContainer = document.createElement('div');
         projContainer.className = 'project';
-        projContainer.setAttribute('id', title.replace(/ /g, "-"));
+        projContainer.setAttribute('id', dashTitle);
         const projName = document.createElement('h1');
         projName.textContent = title;
         const deleteBtn = document.createElement('button');
         deleteBtn.textContent = 'Delete Project';
 
         deleteBtn.addEventListener('click', () => {
-            const project = document.querySelector('#' + title.replace(/ /g, "-"));
+            const project = document.querySelector('#' + dashTitle);
             projectsContainer.removeChild(project);
             pubsub.publish(title + 'deleteProject', (title));
         });
@@ -51,15 +51,16 @@ const dom = (() => {
 
         projContainer.appendChild(createNewTaskButton(title))
 
-        projContainer.appendChild(renderTasks(project.getTasks(), title));
+        projContainer.appendChild(renderTasks(tasks, title));
         projectsContainer.appendChild(projContainer);
 
     }
 
-    function updateProject(project) {
-        const projContainer = document.querySelector('#' + project.getName());
+    function updateProject(title, tasks) {
+        const dashTitle = title.replace(/ /g, "-");
+        const projContainer = document.querySelector('#' + dashTitle);
         projContainer.removeChild(projContainer.querySelector('.task-container'));
-        projContainer.appendChild(renderTasks(project.getTasks(), project.getName()));
+        projContainer.appendChild(renderTasks(tasks, title));
     }
 
     function createDOMProject(title) {
@@ -208,19 +209,16 @@ const dom = (() => {
 
 const lStorage = (() => {
 
-    pubsub.subscribe('updateProject', (project) => { updateStoredProject(project) });
-    pubsub.subscribe('newProject', (project) => { storeProject(project) });
+    pubsub.subscribe('updateProject', ([name, tasks]) => { updateStoredProject(name, tasks) });
+    pubsub.subscribe('newProject', ([name, tasks]) => { storeProject(name, tasks) });
 
-    function storeProject(project) {
-        let title = project.getName();
+    function storeProject(title, tasks) {
         localStorage.setItem(title.replace(/ /g, "-") + '-project',
-            JSON.stringify({ name: title, tasks: [] })
+            JSON.stringify({ name: title, tasks: tasks })
         );
     }
 
-    function updateStoredProject(project) {
-        let title = project.getName();
-        let tasks = project.getTasks();
+    function updateStoredProject(title, tasks) {
         let tasksJSON = [];
         for (let task of tasks) {
             tasksJSON.push(JSON.stringify({ title: task.getTitle(), desc: task.getDesc(), dueDate: task.getDueDate(), prio: task.getPrio(), completed: task.getCompleted(), more: task.getMore() }));
@@ -234,7 +232,20 @@ const lStorage = (() => {
     function getStoredProjects() {
         const entries = Object.entries(localStorage);
         entries.forEach(([key, value]) => {
-            console.log(`Key: ${key}, Value: ${value}`);
+            let object = JSON.parse(value)
+            let title = object.name;
+            let tasksJSON = object.tasks;
+            let tasks = [];
+            pubsub.publish('newProject', [title, tasks]);
+            for (let task of tasksJSON) {
+                let taskObject = JSON.parse(task);
+                console.log(taskObject);
+                console.log([taskObject.title, taskObject.desc, taskObject.dueDate, taskObject.prio, taskObject.completed, taskObject.more]);
+                pubsub.publish(title + 'createTask', [taskObject.title, taskObject.desc, taskObject.dueDate, taskObject.prio]);
+                // pubsub.publish(title + 'storeTask', [taskObject.title, taskObject.desc, taskObject.dueDate, taskObject.prio, taskObject.completed, taskObject.more
+                tasks.push(createTodo(taskObject.title, taskObject.desc, taskObject.dueDate, taskObject.prio, taskObject.completed, taskObject.more));
+            }
+            console.log(tasks);
         });
     }
 

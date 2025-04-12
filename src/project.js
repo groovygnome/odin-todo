@@ -6,6 +6,7 @@ export function createProject(name) {
     let tasks = [];
     const project = { getName, getTasks, addTask, removeTask, displayProject }
     pubsub.subscribe(name + 'createTask', ([title, desc, dueDate, prio]) => addTask(createTodo(title, desc, dueDate, prio)));
+    pubsub.subscribe(name + 'storeTask', ([title, desc, dueDate, prio, complete, more]) => addTask(createTodo(title, desc, dueDate, prio, complete, more)));
     pubsub.subscribe(name + 'deleteTask', (title) => removeTask(title));
     pubsub.subscribe(name + 'completeTask', (title) => { getTask(title).changeCompleted(); pubsub.publish('updateProject', project); });
     pubsub.subscribe(name + 'deleteProject', (title) => { delete this; });
@@ -27,8 +28,9 @@ export function createProject(name) {
     }
 
     function addTask(newTask) {
+        console.log(newTask);
         tasks.push(newTask);
-        pubsub.publish('updateProject', project);
+        pubsub.publish('updateProject', [name, tasks]);
     }
 
     function removeTask(title) {
@@ -44,14 +46,12 @@ export function createProject(name) {
         }
     }
 
-    pubsub.publish('newProject', project);
+    pubsub.publish('newProject', [name, tasks]);
 
     return { getName, getTasks, addTask, removeTask, displayProject }
 }
 
-export function createTodo(title, description, dueDate, priority) {
-    let completed = false;
-    let more = false;
+export function createTodo(title, description, dueDate, priority, completed = false, more = false) {
 
     function changeCompleted() {
         completed = !completed;
