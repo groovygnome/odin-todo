@@ -43,6 +43,7 @@ const dom = (() => {
             const project = document.querySelector('#' + dashTitle);
             projectsContainer.removeChild(project);
             pubsub.publish(title + 'deleteProject', (title));
+            pubsub.publish('deleteProject', (title));
         });
 
 
@@ -133,15 +134,11 @@ const dom = (() => {
         taskDOM.className = 'task';
         taskDOM.id = taskTitle.replace(/ /g, "-");
         deleteBtn.addEventListener('click', () => {
-            const project = document.querySelector('#' + projTitle);
-            const taskCont = project.querySelector('.task-container');
-            const deleteTask = taskCont.querySelector('#' + taskTitle.replace(/ /g, "-"));
-            taskCont.removeChild(deleteTask);
             pubsub.publish(projTitle + 'deleteTask', (taskTitle));
         });
 
         completedBtn.addEventListener('change', () => {
-            task.changeCompleted();
+            pubsub.publish(projTitle + 'completeTask', (taskTitle));
             if (completedBtn.checked) {
                 completed.textContent = 'Completed';
                 completed.style.color = 'green';
@@ -211,6 +208,7 @@ const lStorage = (() => {
 
     pubsub.subscribe('updateProject', ([name, tasks]) => { updateStoredProject(name, tasks) });
     pubsub.subscribe('newProject', ([name, tasks]) => { storeProject(name, tasks) });
+    pubsub.subscribe('deleteProject', (name) => { deleteStoredProject(name) });
 
     function storeProject(title, tasks) {
         localStorage.setItem(title.replace(/ /g, "-") + '-project',
@@ -221,7 +219,7 @@ const lStorage = (() => {
     function updateStoredProject(title, tasks) {
         let tasksJSON = [];
         for (let task of tasks) {
-            tasksJSON.push(JSON.stringify({ title: task.getTitle(), desc: task.getDesc(), dueDate: task.getDueDate(), prio: task.getPrio(), completed: task.getCompleted(), more: task.getMore() }));
+            tasksJSON.push(JSON.stringify({ title: task.getTitle(), desc: task.getDesc(), dueDate: task.getDueDate(), prio: task.getPrio(), completed: task.getCompleted(), more: false }));
         }
         localStorage.setItem(title.replace(/ /g, "-") + '-project',
             JSON.stringify({ name: title, tasks: tasksJSON })
@@ -236,17 +234,17 @@ const lStorage = (() => {
             let title = object.name;
             let tasksJSON = object.tasks;
             let tasks = [];
-            pubsub.publish('newProject', [title, tasks]);
+            pubsub.publish('createProject', title);
             for (let task of tasksJSON) {
                 let taskObject = JSON.parse(task);
-                console.log(taskObject);
-                console.log([taskObject.title, taskObject.desc, taskObject.dueDate, taskObject.prio, taskObject.completed, taskObject.more]);
-                pubsub.publish(title + 'createTask', [taskObject.title, taskObject.desc, taskObject.dueDate, taskObject.prio]);
-                // pubsub.publish(title + 'storeTask', [taskObject.title, taskObject.desc, taskObject.dueDate, taskObject.prio, taskObject.completed, taskObject.more
-                tasks.push(createTodo(taskObject.title, taskObject.desc, taskObject.dueDate, taskObject.prio, taskObject.completed, taskObject.more));
+                pubsub.publish(title + 'createTask', [taskObject.title, taskObject.desc, taskObject.dueDate, taskObject.prio, taskObject.completed]);
             }
-            console.log(tasks);
         });
+    }
+
+    function deleteStoredProject(title) {
+        localStorage.removeItem(title.replace(/ /g, '-') + '-project');
+
     }
 
     getStoredProjects();
