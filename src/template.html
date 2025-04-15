@@ -7,30 +7,41 @@
 
     <body>
 
-        <dialog class='task-modal'>
+        <dialog class='task-modal modal'>
             <form id='newtask'>
-                <button class='task-close'>&times;</button>
-                <label for='task-title'>Title :</label>
-                <input type='text' id='task-title' name='task-title'>
-                <label for='desc'>Description :</label>
-                <input type='text' id='desc' name='desc'>
-                <label for='duedate'>Due Date :</label>
-                <input type='date' id='duedate' name='duedate'>
-                <label for='prio'>Priority :</label>
-                <select id='prio' name='prio'>
-                    <option value='No Priority'>None</option>
-                    <option value='Low Priority'>Low</option>
-                    <option value='Medium Priority'>Medium</option>
-                    <option value='High Priority'>High</option>
-                </select>
+                <span class='task-close close'>&times;</span>
+                <label for='task-title'>
+                    <span>Title :</span>
+                    <input type='text' id='task-title' name='task-title'>
+                </label>
+                
+                <label for='desc'>
+                    <span>Description :</span>
+                    <input type='text' id='desc' name='desc'>
+                </label>
+                <label for='duedate'>
+                    <span>Due Date :</span>
+                    <input type='date' id='duedate' name='duedate'>
+                </label>
+                <label for='prio'><span>Priority :</span>
+                    <select id='prio' name='prio'>
+                        <option value='No Priority'>None</option>
+                        <option value='Low Priority'>Low</option>
+                        <option value='Medium Priority'>Medium</option>
+                        <option value='High Priority'>High</option>
+                    </select>
+                </label>
             </form>
         </dialog>
 
-        <dialog class='proj-modal'>
+        <dialog class='proj-modal modal'>
             <form id='newproj'>
-                <button class='proj-close'>&times;</button>
-                <label for='title'>Title :</label>
-                <input type='text' id='title' name='title'>
+                <span class='proj-close close'>&times;</span>
+                <label for='title'>
+                    <span>Title :</span>
+                    <input type='text' id='title' name='title'>
+                </label>
+                
                 <input class='proj-submit' type='submit' form='newproj'>
             </form>
         </dialog>

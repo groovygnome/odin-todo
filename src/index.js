@@ -32,6 +32,9 @@ const dom = (() => {
     function displayProject(title, tasks) {
         const dashTitle = title.replace(/ /g, "-");
         const projContainer = document.createElement('div');
+        const projContainerHeader = document.createElement('div');
+        const buttons = document.createElement('div');
+        projContainerHeader.className = 'project-header';
         projContainer.className = 'project';
         projContainer.setAttribute('id', dashTitle);
         const projName = document.createElement('h1');
@@ -47,11 +50,12 @@ const dom = (() => {
         });
 
 
-        projContainer.appendChild(projName);
-        projContainer.appendChild(deleteBtn);
+        projContainerHeader.appendChild(projName);
+        buttons.appendChild(deleteBtn);
+        buttons.appendChild(createNewTaskButton(title))
+        projContainerHeader.appendChild(buttons);
 
-        projContainer.appendChild(createNewTaskButton(title))
-
+        projContainer.appendChild(projContainerHeader);
         projContainer.appendChild(renderTasks(tasks, title));
         projectsContainer.appendChild(projContainer);
 
@@ -79,6 +83,8 @@ const dom = (() => {
 
     function createTask(task, projTitle) {
         const taskDOM = document.createElement('div');
+        const taskHeader = document.createElement('div');
+        taskHeader.className = 'task-header';
         const deleteBtn = document.createElement('button');
         const taskTitle = task.getTitle();
         deleteBtn.textContent = 'Delete Task';
@@ -124,7 +130,7 @@ const dom = (() => {
         }
 
         if (task.getMore()) {
-            more.style.display = 'inline';
+            more.style.display = 'flex';
             moreBtn.textContent = 'Show Less';
         } else {
             more.style.display = 'none';
@@ -153,21 +159,22 @@ const dom = (() => {
             task.changeMore();
             if (moreBtn.textContent == 'Show More') {
                 moreBtn.textContent = 'Show Less';
-                more.style.display = 'inline';
+                more.style.display = 'flex';
             } else {
                 moreBtn.textContent = 'Show More';
                 more.style.display = 'none';
             }
         });
-        taskDOM.appendChild(title);
-        taskDOM.appendChild(dueDate);
-        taskDOM.appendChild(completedBtn);
+        taskHeader.appendChild(title);
+        taskHeader.appendChild(dueDate);
+        taskHeader.appendChild(completedBtn);
+        taskHeader.appendChild(moreBtn);
+        taskDOM.appendChild(taskHeader);
         more.appendChild(desc);
         more.appendChild(prio);
         more.appendChild(completed);
         more.appendChild(deleteBtn);
         taskDOM.appendChild(more);
-        taskDOM.appendChild(moreBtn);
 
         return taskDOM;
     }
@@ -225,6 +232,7 @@ const lStorage = (() => {
             JSON.stringify({ name: title, tasks: tasksJSON })
         );
 
+
     }
 
     function getStoredProjects() {
@@ -237,7 +245,7 @@ const lStorage = (() => {
             pubsub.publish('createProject', title);
             for (let task of tasksJSON) {
                 let taskObject = JSON.parse(task);
-                pubsub.publish(title + 'createTask', [taskObject.title, taskObject.desc, taskObject.dueDate, taskObject.prio, taskObject.completed]);
+                pubsub.publish(title + 'storeTask', [taskObject.title, taskObject.desc, taskObject.dueDate, taskObject.prio, taskObject.completed]);
             }
         });
     }
