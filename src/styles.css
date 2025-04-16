@@ -1,20 +1,19 @@
 body {
     margin: 0;
     padding: 0;
-}
-
-body{
     width: 100%;
     height: 100vh;
     display: flex;
     flex-direction: column;
     gap: 16px;
     align-items: center;
+    background-color: #e7dfe2;
 }
 
 .projects-container{
     display: flex;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 .project{
@@ -34,8 +33,9 @@ body{
     padding: 10px;
     font-weight: bold;
     color: white;
-    background-color: forestgreen;
+    background-color: #eecf8e;
     border-radius: 8px;
+    margin-top: 8px;
 }
 
 form{
